@@ -1,0 +1,176 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "Job Description Writer",
+    "description": "Create professional job descriptions with AI assistant that knows your industry and company. Say a little or a lot and let AI handle the rest!",
+    "version": "1.0.0",
+    "category": "customer_support",
+    "imageUrl": "https://nebuladigital.ai/agents/img/jd-writer.png",
+    "capabilities": [
+      {
+        "name": "jd_generation",
+        "description": "Creates polished job descriptions from minimal input",
+        "parameters": {
+          "features": [
+            "Input few words, get polished JD",
+            "Industry & Company context",
+            "Conversational & In-Place editing",
+            "Customized UX for JD writing",
+            "Create your own JD template",
+            "Export JD and Share with others"
+          ]
+        }
+      }
+    ],
+    "status": "active",
+    "pricing_model": "paid",
+    "provider": "Nebula Digital",
+    "language_support": ["en"],
+    "tags": ["hr", "recruitment", "job-description", "writing"]
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "name": "Individual Development Plan (IDP)",
+    "description": "From job role to growth goal - this AI agent builds your personalized upskilling path.",
+    "version": "1.0.0",
+    "category": "customer_support",
+    "imageUrl": "https://nebuladigital.ai/agents/img/learning-path.png",
+    "capabilities": [
+      {
+        "name": "learning_roadmap",
+        "description": "Builds personalized learning and development paths",
+        "parameters": {
+          "features": [
+            "Reads JD and skill profile",
+            "Builds tailored learning roadmap",
+            "Recommends courses, content, mentors",
+            "Tracks progress and adapts path",
+            "Integrates with LMS platforms",
+            "Boosts retention with smart upskilling"
+          ]
+        }
+      }
+    ],
+    "status": "maintenance",
+    "pricing_model": "subscription",
+    "provider": "Nebula Digital",
+    "language_support": ["en"],
+    "tags": ["hr", "learning", "development", "upskilling"],
+    "created_at": "2024-03-14T12:00:00Z",
+    "updated_at": "2024-03-14T12:00:00Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "name": "Performance Coach",
+    "description": "Your personal nudge toward better performance—powered by smart feedback and clear goals.",
+    "version": "1.0.0",
+    "category": "customer_support",
+    "imageUrl": "https://nebuladigital.ai/agents/img/perf-coach.png",
+    "capabilities": [
+      {
+        "name": "performance_coaching",
+        "description": "Provides personalized performance improvement guidance",
+        "parameters": {
+          "features": [
+            "Summarizes feedback into growth tips",
+            "Suggests micro-goals or habits",
+            "Tracks progress on goals",
+            "Prompts reflection & self-evaluation",
+            "Works alongside performance review cycles"
+          ]
+        }
+      }
+    ],
+    "status": "inactive",
+    "pricing_model": "subscription",
+    "provider": "Nebula Digital",
+    "language_support": ["en"],
+    "tags": ["hr", "performance", "coaching", "feedback"]
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440004",
+    "name": "CV Sorter",
+    "description": "This smart assistant reads JDs, scans CVs, and ranks candidates by how well they match. Save hours, hire faster, and never miss the right talent again.",
+    "version": "1.0.0",
+    "category": "customer_support",
+    "imageUrl": "https://nebuladigital.ai/agents/img/cv-sort.png",
+    "capabilities": [
+      {
+        "name": "cv_sorting",
+        "description": "Automated CV scanning and ranking system",
+        "parameters": {
+          "features": [
+            "Reads JDs like a recruiter",
+            "Scans CVs in seconds flat",
+            "Ranks candidates by best match",
+            "Learns your hiring preferences fast",
+            "Plug it in, hire smarter"
+          ]
+        }
+      }
+    ],
+    "status": "inactive",
+    "pricing_model": "paid",
+    "provider": "Nebula Digital",
+    "language_support": ["en"],
+    "tags": ["hr", "recruitment", "cv-screening", "hiring"]
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440005",
+    "name": "Interview Assistant",
+    "description": "Ask smarter, hire better—AI that generates tailored questions and helps assess the right fit.",
+    "version": "1.0.0",
+    "category": "customer_support",
+    "imageUrl": "https://nebuladigital.ai/agents/img/interview.png",
+    "capabilities": [
+      {
+        "name": "interview_assistance",
+        "description": "Generates and manages interview questions and assessments",
+        "parameters": {
+          "features": [
+            "Generates role-specific interview questions",
+            "Covers tech, behavioral, and soft skills",
+            "Provides ideal sample answers",
+            "Helps score answers with rubrics",
+            "Customizable interview templates by role"
+          ]
+        }
+      }
+    ],
+    "status": "inactive",
+    "pricing_model": "subscription",
+    "provider": "Nebula Digital",
+    "language_support": ["en"],
+    "tags": ["hr", "recruitment", "interviewing", "assessment"]
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440006",
+    "name": "Support Desk",
+    "description": "Answers at your fingertips with your AI-agent knowing everything work-related.",
+    "version": "1.0.0",
+    "category": "customer_support",
+    "imageUrl": "https://nebuladigital.ai/agents/img/service-desk.png",
+    "capabilities": [
+      {
+        "name": "support_assistance",
+        "description": "Comprehensive workplace support and guidance system",
+        "parameters": {
+          "features": [
+            "Answers onboarding & policy questions",
+            "Explains IT, HR, finance, & ops processes",
+            "Guides through common tasks",
+            "Works across departments and levels",
+            "Available 24/7 across web and mobile",
+            "Continuously learns from internal knowledge sources",
+            "Reduces support load across HR and IT"
+          ]
+        }
+      }
+    ],
+    "status": "inactive",
+    "pricing_model": "subscription",
+    "provider": "Nebula Digital",
+    "language_support": ["en"],
+    "tags": ["hr", "support", "onboarding", "helpdesk"]
+  }
+]
