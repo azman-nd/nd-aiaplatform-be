@@ -1,26 +1,11 @@
-from pydantic import BaseModel, Field, HttpUrl
-from typing import List, Optional
-from enum import Enum
+from pydantic import BaseModel, Field, HttpUrl, ConfigDict
+from typing import List, Optional, Literal
 from datetime import datetime
 from uuid import UUID, uuid4
 
-class AgentCategory(str, Enum):
-    TRAVEL_PLANNER = "travel_planner"
-    ITINERARY_SPECIALIST = "itinerary_specialist"
-    LOCAL_EXPERT = "local_expert"
-    BOOKING_ASSISTANT = "booking_assistant"
-    CUSTOMER_SUPPORT = "customer_support"
-
-class AgentStatus(str, Enum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    MAINTENANCE = "maintenance"
-    DEPRECATED = "deprecated"
-
-class PricingModel(str, Enum):
-    FREE = "free"
-    PAID = "paid"
-    SUBSCRIPTION = "subscription"
+# Define valid values as type aliases
+AgentStatus = Literal["active", "inactive", "maintenance", "deprecated"]
+PricingModel = Literal["free", "paid", "subscription"]
 
 class AgentCapability(BaseModel):
     name: str
@@ -28,48 +13,37 @@ class AgentCapability(BaseModel):
     parameters: Optional[dict] = None
 
 class Agent(BaseModel):
-    id: UUID = Field(default_factory=uuid4)
-    name: str = Field(..., min_length=1, max_length=100)
-    description: str = Field(..., min_length=10)
-    version: str = Field(..., pattern="^\\d+\\.\\d+\\.\\d+$")  # Semantic versioning
-    category: AgentCategory
-    imageUrl: Optional[HttpUrl] = None
-    capabilities: List[AgentCapability]
-    status: AgentStatus = AgentStatus.ACTIVE
-    pricing_model: PricingModel
-    price: Optional[float] = None
-    icon_url: Optional[HttpUrl] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-    rating: Optional[float] = Field(None, ge=0, le=5)
-    total_reviews: int = 0
-    provider: str
-    language_support: List[str] = ["en"]
-    tags: List[str] = []
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
-                "name": "Travel Pro Max",
-                "description": "Advanced travel planning assistant with expertise in luxury travel and custom itineraries",
+                "name": "Job Description Writer",
+                "title": "AI Job Description Generator",
+                "description": "Create professional job descriptions with AI assistant that knows your industry and company",
                 "version": "1.0.0",
-                "category": "travel_planner",
-                "imageUrl":"https://nebuladigital.ai/agents/img/service-desk.png",
-                "capabilities": [
-                    {
-                        "name": "itinerary_planning",
-                        "description": "Creates detailed travel itineraries",
-                        "parameters": {
-                            "max_days": 30,
-                            "destinations_limit": 10
-                        }
-                    }
-                ],
+                "imageUrl": "https://nebuladigital.ai/agents/img/jd-writer.png",
+                "features": "Input few words, get polished JD\nIndustry & Company context\nConversational & In-Place editing",
                 "status": "active",
                 "pricing_model": "paid",
                 "price": 9.99,
-                "provider": "OpenAI",
-                "language_support": ["en", "es"],
-                "tags": ["luxury", "custom", "international"]
+                "provider": "Nebula Digital",
+                "language_support": ["en"],
+                "tags": ["hr", "recruitment", "job-description"]
             }
         }
+    )
+
+    id: UUID = Field(default_factory=uuid4)
+    name: str = Field(..., min_length=1, max_length=100)
+    title: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(..., min_length=10)
+    version: str = Field(..., pattern="^\\d+\\.\\d+\\.\\d+$")  # Semantic versioning
+    imageUrl: Optional[HttpUrl] = None
+    features: str  # Newline-separated string of features
+    status: AgentStatus = "active"
+    pricing_model: PricingModel
+    price: Optional[float] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    provider: str
+    language_support: List[str] = ["en"]
+    tags: List[str] = []

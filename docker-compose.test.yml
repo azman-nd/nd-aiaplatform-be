@@ -1,0 +1,17 @@
+# for testing environment
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env.test
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - aiaplatform-network
+
+networks:
+  aiaplatform-network:
+    external: false   # create a new network

@@ -16,105 +16,270 @@ A FastAPI-based backend service for the AI Travel Agent Platform.
 │   │       └── endpoints/ # Route handlers for different features
 │   ├── core/             # Core application components
 │   │   ├── __init__.py
-│   │   └── config.py     # Configuration settings
+│   │   ├── config.py     # Configuration settings
+│   │   └── database.py   # Database connection and session management
 │   ├── models/           # Database models and Pydantic schemas
-│   │   └── __init__.py
+│   │   ├── __init__.py
+│   │   ├── database.py   # SQLAlchemy models
+│   │   └── schemas.py    # Pydantic models for request/response validation
 │   └── services/         # Business logic and service layer
 │       └── __init__.py
-├── requirements.txt       # Project dependencies
-├── Dockerfile            # Docker configuration
-├── docker-compose.yml    # Docker Compose configuration
-└── README.md             # Project documentation
+├── tests/                # Test suite
+│   ├── __init__.py
+│   ├── conftest.py      # Test configurations and fixtures
+│   └── api/             # API tests
+│       └── v1/
+│           └── endpoints/
+├── alembic/             # Database migration scripts
+│   ├── versions/        # Migration version files
+│   └── env.py          # Migration environment configuration
+├── requirements.txt     # Production dependencies
+├── requirements-test.txt # Test dependencies
+├── Dockerfile          # Docker configuration
+├── docker-compose.yml  # Development Docker Compose configuration
+├── docker-compose.prod.yml # Production Docker Compose configuration
+└── README.md           # Project documentation
 ```
 
-## Setup and Installation
+## Development Setup
+
+### Prerequisites
+- Python 3.11 or higher
+- PostgreSQL (for development and production)
+- Docker and Docker Compose (optional, for containerized development)
 
 ### Local Development Setup
 
-1. Ensure you have Conda installed and create the environment:
+1. Create and activate a virtual environment:
 ```bash
-conda activate aia-platform-be
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
+pip install -r requirements-test.txt  # For development and testing
 ```
 
-3. Run the development server:
+3. Create environment files:
+   - Create `.env.dev` for development
+   - Create `.env.prod` for production
+   - Create `.env.test` for testing. Testing env do not need to have any DB info as in-momory sqllite is used for testing.
+   - Example `.env.dev`:
+   ```env
+   DB_USER=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_NAME=your_db_name
+   DB_PORT=5432
+   DB_HOST=localhost
+   DB_SCHEMA=aiaplatform
+   ```
+
+4. Run the development server:
+Do following before running the API server.
+a) Ensure that Postgres DB is running
+b) Migration script is executed (refer to the how to run migration section)
+c) right env file is used (.env.dev or .env.prod, use appropiate docker command)
+
 ```bash
-uvicorn app.main:app --reload
+docker compose up api
 ```
 
-### Docker Setup
+## Docker Setup
 
-1. Using the right docker compose yaml file.
-
-For development env use `docker-compose.yaml` file. It (a) usees `env.dev` env file, (b) connects to same network that is created by DB docker and (c) uses DB Hostname as mentioned that is reachable from DB service. 
-
-
-For production env use `docker-compose.prod.yaml` file. IT (a) uses `env.prod` env file, (b) creats its own network and (c) connects to DB server using a publicly reachable IP. 
-
-2. Build and run using Docker Compose:
+### Development Environment
+1. Build and run using Docker Compose:
 ```bash
-docker compose -f < filename > up --build
+docker compose up --build
 ```
 
-3. To run in detached mode:
+### Production Environment
+1. Build and run using production Docker Compose:
 ```bash
-docker compose -f < filename > up -d
+docker compose -f docker-compose.prod.yml up --build
 ```
 
-4. To stop the containers:
+## Database Configuration
+
+The application uses two different databases:
+
+1. **PostgreSQL** (Production/Development):
+   - Main database for the API
+   - Configured through environment variables
+   - Uses schema-based isolation
+   - Connection pooling with health checks
+   - Connection recycling after 1 hour
+
+2. **SQLite** (Testing):
+   - In-memory database for testing
+   - Automatically configured in test environment
+   - No schema support (schema is stripped for testing)
+   - Each test gets a fresh database instance
+
+## Database Migrations
+
+### Using Docker (Recommended)
+
+1. **Development Environment**:
 ```bash
-docker compose down
+# Run migrations and remove the container after completion
+docker compose up migration --remove-orphans
+
+# Or if you want to keep the container for debugging
+docker compose up migration
 ```
 
-The server will start and you can access:
-- API documentation at http://localhost:8000/docs
-- ReDoc documentation at http://localhost:8000/redoc
-- Health check endpoint at http://localhost:8000/health
-- Root endpoint at http://localhost:8000/
-
-## Database Connection
-
-### Database Configuration
-
-The application uses PostgreSQL with the following features:
-- Connection pooling with health checks
-- Connection recycling after 1 hour
-- Schema-based isolation
-- Environment-specific host configuration:
-  - Development: Uses Docker service name 'postgres'
-  - Production: Uses actual database machine IP
-
-The database connection is configured through individual environment variables:
-```env
-DB_USER=<your_db_user>
-DB_PASSWORD=<your_db_password>
-DB_NAME=<your_db_name>
-DB_PORT=5432
-DB_HOST=<your_db_host>
-DB_SCHEMA=aiaplatform
-```
-
-The `DATABASE_URL` is automatically computed from these settings.
-
-### Finding Database Docker IP Address
-
-PostgreSQL docker is configured to accept remote connection. Therefore, in production env, update the `DB_HOST` in your environment file with the IP address of the machine where DB docker is running.
-
-### Verifying Database Connection
-
-You can verify the database connection and schema using the health check endpoint:
+2. **Production Environment**:
 ```bash
-curl http://localhost:8000/health
+# Run migrations and remove the container after completion
+docker compose -f docker-compose.prod.yml up migration --remove-orphans
 ```
 
-The response will include:
-- Connection status
-- PostgreSQL version
-- Current schema name
+3. **Cleanup Orphaned Containers**:
+If you see a message about orphaned containers, you can clean them up with:
+```bash
+# Remove orphaned containers
+docker compose down --remove-orphans
+
+# Or when running migrations
+docker compose up migration --remove-orphans
+```
+
+Note: The migration service is designed to run once and exit. Using `--remove-orphans` flag ensures that the container is removed after the migration is complete.
+
+### Manual Migration (Alternative)
+
+These commands are useful for:
+- Development without Docker
+- Debugging migration issues
+- CI/CD pipelines
+- Manual database management
+
+#### Prerequisites Installation
+
+1. **Install PostgreSQL Client Tools**:
+   - On macOS:
+   ```bash
+   brew install postgresql
+   ```
+   - On Ubuntu/Debian:
+   ```bash
+   sudo apt-get install postgresql-client
+   ```
+   - On Windows:
+   - Install PostgreSQL from https://www.postgresql.org/download/windows/
+   - Add PostgreSQL bin directory to PATH
+
+2. **Install Alembic**:
+```bash
+pip install alembic
+```
+
+#### Migration Commands
+
+1. **First-time Setup**:
+
+Using Docker (Recommended):
+```bash
+# Create database using PostgreSQL container
+docker compose exec db createdb your_db_name
+
+# Run migrations using API container
+docker compose exec api alembic upgrade head
+```
+
+Using Local Installation:
+```bash
+# Create database (if not using Docker)
+createdb your_db_name
+
+# Run migrations manually
+alembic upgrade head
+```
+
+2. **Managing Migrations**:
+
+Using Docker:
+```bash
+# Create new migration
+docker compose exec api alembic revision --autogenerate -m "description of changes"
+
+# Apply migrations
+docker compose exec api alembic upgrade head
+
+# Downgrade migrations
+docker compose exec api alembic downgrade -1  # Go back one migration
+# or
+docker compose exec api alembic downgrade <revision_id>  # Go to specific revision
+
+# View migration history
+docker compose exec api alembic history
+```
+
+Using Local Installation:
+```bash
+# Create new migration
+alembic revision --autogenerate -m "description of changes"
+
+# Apply migrations
+alembic upgrade head
+
+# Downgrade migrations
+alembic downgrade -1  # Go back one migration
+# or
+alembic downgrade <revision_id>  # Go to specific revision
+
+# View migration history
+alembic history
+```
+
+### Important Notes
+- Always review auto-generated migrations before applying
+- Never modify existing migration files
+- Create new migrations for schema changes
+- Test migrations in development before applying to production
+- For containerized environments, prefer using `docker compose up migration`
+- Manual commands are mainly for development and debugging purposes
+- When using Docker commands, ensure containers are running before executing migration commands
+
+## Testing
+
+### Running Tests
+
+1. Run all tests:
+```bash
+pytest
+```
+
+2. Run tests with verbose output:
+```bash
+pytest -v
+```
+
+3. Run tests with coverage report:
+```bash
+pytest --cov=app tests/
+```
+
+4. Run specific test file:
+```bash
+pytest tests/api/v1/endpoints/test_agents.py
+```
+
+### Test Structure
+- `tests/`: Root test directory
+  - `conftest.py`: Contains shared pytest fixtures
+  - `api/`: API tests
+    - `v1/`: Version 1 API tests
+      - `endpoints/`: Tests for specific endpoints
+
+### Writing Tests
+1. Test files should be named `test_*.py`
+2. Test functions should be named `test_*`
+3. Use fixtures from `conftest.py` for common setup
+4. Follow the Arrange-Act-Assert pattern
+5. Test both success and error cases
 
 ## API Documentation
 
@@ -122,14 +287,30 @@ Once the server is running, you can access:
 - Swagger UI documentation: http://localhost:8000/docs
 - ReDoc documentation: http://localhost:8000/redoc
 - Health check endpoint: http://localhost:8000/health
-- Root endpoint: http://localhost:8000/
 
-## Project Components
+## Docker Registry Management
 
-- **api/**: Contains all the route definitions organized by version
-- **core/**: Houses core functionality and configurations
-- **models/**: Contains database models and Pydantic schemas for data validation
-- **services/**: Implements business logic and external service integrations
+### GitHub Container Registry (ghcr.io)
+
+1. Login to GitHub Container Registry:
+```bash
+echo $GHCR_TOKEN | docker login ghcr.io -u azman-nd --password-stdin
+```
+
+2. Tag local image:
+```bash
+docker tag <ImageID> ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
+```
+
+3. Push to registry:
+```bash
+docker push ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
+```
+
+4. Pull from registry:
+```bash
+docker pull ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
+```
 
 ## Development Guidelines
 
@@ -137,97 +318,29 @@ Once the server is running, you can access:
 2. Use Pydantic models for request/response validation
 3. Keep business logic in the services layer
 4. Update requirements.txt when adding new dependencies
+5. Write tests for new features
+6. Follow PEP 8 style guide
+7. Use type hints for better code maintainability
 
-### Github Login and Docker push/pull:
+## Troubleshooting
 
-1. Login to Github Container Registry service (ghcr.io)
-```bash 
-echo $GHCR_TOKEN| docker login ghcr.io -u azman-nd --password-stdin
-```
-2. Tag local image for ghcr.io
-```bash
-docker tag <ImageID> ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
-```
-3. Push docker image to ghcr.io
-```bash
-docker push ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
-```
-4. Pull docker image in EC2
-```bash
-docker pull ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
-```
-5. Run docker in EC2
-```bash
-docker run -d -p 8000:8000 ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
-```
+### Common Issues
 
-## Environment Setup
+1. Database Connection Issues:
+   - Verify PostgreSQL is running
+   - Check environment variables
+   - Ensure database exists
+   - Check network connectivity
 
-The application uses environment-specific configuration files. Create the following files in the `app` directory:
+2. Migration Issues:
+   - Ensure database exists
+   - Check migration history
+   - Verify schema exists
+   - Check user permissions
 
-### Development Environment (.env.dev)
-```env
-
-# Database Configuration
-DB_USER=<your_db_user>
-DB_PASSWORD=<your_db_password>
-DB_NAME=<your_db_name>
-DB_PORT=5432
-DB_HOST=postgres
-DB_SCHEMA=aiaplatform
-
-```
-
-### Production Environment (.env.prod)
-```env
-# Database Configuration
-DB_USER=<your_db_user>
-DB_PASSWORD=<your_db_password>
-DB_NAME=<your_db_name>
-DB_PORT=5432
-DB_HOST=<your-db-machine-ip>
-DB_SCHEMA=aiaplatform
-```
-
-## Running the Application
-
-
-
-### Development
-```bash
-# Default (uses .env.dev)
-docker compose up
-
-# Or explicitly specify environment
-docker compose -f docker-compose.yaml up
-```
-
-### Production
-```bash
-docker compose -f docker-compose.prod.yaml up
-```
-
-## Database Configuration
-
-The application uses PostgreSQL with the following features:
-- Connection pooling with health checks
-- Connection recycling after 1 hour
-- Schema-based isolation
-- Environment-specific host configuration:
-  - Development: Uses Docker service name 'postgres'
-  - Production: Uses actual database machine IP
-
-## API Documentation
-
-Once the application is running, you can access:
-- API documentation at: http://localhost:8000/docs
-- Alternative API documentation at: http://localhost:8000/redoc
-
-## Health Check
-
-The application provides a health check endpoint at `/health` that verifies:
-- Database connectivity
-- PostgreSQL version
-- Current schema
-- Basic database operations
+3. Docker Issues:
+   - Check Docker daemon is running
+   - Verify network configuration
+   - Check container logs
+   - Ensure ports are available
 

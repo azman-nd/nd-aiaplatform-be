@@ -9,16 +9,32 @@ import jwt
 from sqlalchemy import text
 from app.core.database import engine
 import logging
+from contextlib import asynccontextmanager
 
 load_dotenv()
 
 CLERK_SECRET_KEY = os.getenv('CLERK_SECRET_KEY')
 CLERK_JWT_KEY = os.getenv('CLERK_JWT_KEY')
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger = logging.getLogger("uvicorn.error")
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+        logger.info("Database connection successful on startup.")
+    except Exception as e:
+        logger.error(f"Database connection failed on startup: {e}")
+    yield
+    # Shutdown
+    # Add any cleanup code here if needed
+
 app = FastAPI(
     title="AI Agent Platform",
     description="API for AI Agent Platform",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # CORS middleware configuration
@@ -98,16 +114,6 @@ app.include_router(agents.router, prefix="/api/v1")
 @app.get("/")
 async def root():
     return {"message": "Welcome to AI Agent Platform API"}
-
-@app.on_event("startup")
-async def startup_db_check():
-    logger = logging.getLogger("uvicorn.error")
-    try:
-        with engine.connect() as connection:
-            connection.execute(text("SELECT 1"))
-        logger.info("Database connection successful on startup.")
-    except Exception as e:
-        logger.error(f"Database connection failed on startup: {e}")
 
 @app.get("/health")
 async def health_check():

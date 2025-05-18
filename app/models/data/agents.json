@@ -214,41 +214,5 @@
       "onboarding",
       "helpdesk"
     ]
-  },
-  {
-    "id": "d32e86c1-eba9-436f-bb9d-8eaae07e8e3e",
-    "name": "Travel Pro Max",
-    "description": "Advanced travel planning assistant with expertise in luxury travel and custom itineraries",
-    "version": "1.0.0",
-    "category": "travel_planner",
-    "imageUrl": "https://nebuladigital.ai/agents/img/service-desk.png",
-    "capabilities": [
-      {
-        "name": "itinerary_planning",
-        "description": "Creates detailed travel itineraries",
-        "parameters": {
-          "destinations_limit": 10,
-          "max_days": 30
-        }
-      }
-    ],
-    "status": "active",
-    "pricing_model": "paid",
-    "price": 9.99,
-    "icon_url": null,
-    "created_at": "2025-04-28 19:22:25.781620",
-    "updated_at": "2025-04-28 19:22:25.781625",
-    "rating": null,
-    "total_reviews": 0,
-    "provider": "OpenAI",
-    "language_support": [
-      "en",
-      "es"
-    ],
-    "tags": [
-      "luxury",
-      "custom",
-      "international"
-    ]
   }
 ]
