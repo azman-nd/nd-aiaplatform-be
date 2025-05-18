@@ -1,5 +1,5 @@
 version: '3.8'
-# for development environment
+# for production environment
 
 services:
   api:
@@ -9,11 +9,11 @@ services:
     volumes:
       - .:/app
     env_file:
-      - .env.dev
+      - .env.prod
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
       - aiaplatform-network
 
 networks:
   aiaplatform-network:
-    external: true # use the same network as created by the database docker
+    external: false   # create a new network

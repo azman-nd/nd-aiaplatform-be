@@ -25,8 +25,15 @@
     "status": "active",
     "pricing_model": "paid",
     "provider": "Nebula Digital",
-    "language_support": ["en"],
-    "tags": ["hr", "recruitment", "job-description", "writing"]
+    "language_support": [
+      "en"
+    ],
+    "tags": [
+      "hr",
+      "recruitment",
+      "job-description",
+      "writing"
+    ]
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440002",
@@ -54,15 +61,22 @@
     "status": "maintenance",
     "pricing_model": "subscription",
     "provider": "Nebula Digital",
-    "language_support": ["en"],
-    "tags": ["hr", "learning", "development", "upskilling"],
+    "language_support": [
+      "en"
+    ],
+    "tags": [
+      "hr",
+      "learning",
+      "development",
+      "upskilling"
+    ],
     "created_at": "2024-03-14T12:00:00Z",
     "updated_at": "2024-03-14T12:00:00Z"
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440003",
     "name": "Performance Coach",
-    "description": "Your personal nudge toward better performance—powered by smart feedback and clear goals.",
+    "description": "Your personal nudge toward better performance\u2014powered by smart feedback and clear goals.",
     "version": "1.0.0",
     "category": "customer_support",
     "imageUrl": "https://nebuladigital.ai/agents/img/perf-coach.png",
@@ -84,8 +98,15 @@
     "status": "inactive",
     "pricing_model": "subscription",
     "provider": "Nebula Digital",
-    "language_support": ["en"],
-    "tags": ["hr", "performance", "coaching", "feedback"]
+    "language_support": [
+      "en"
+    ],
+    "tags": [
+      "hr",
+      "performance",
+      "coaching",
+      "feedback"
+    ]
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440004",
@@ -112,13 +133,20 @@
     "status": "inactive",
     "pricing_model": "paid",
     "provider": "Nebula Digital",
-    "language_support": ["en"],
-    "tags": ["hr", "recruitment", "cv-screening", "hiring"]
+    "language_support": [
+      "en"
+    ],
+    "tags": [
+      "hr",
+      "recruitment",
+      "cv-screening",
+      "hiring"
+    ]
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440005",
     "name": "Interview Assistant",
-    "description": "Ask smarter, hire better—AI that generates tailored questions and helps assess the right fit.",
+    "description": "Ask smarter, hire better\u2014AI that generates tailored questions and helps assess the right fit.",
     "version": "1.0.0",
     "category": "customer_support",
     "imageUrl": "https://nebuladigital.ai/agents/img/interview.png",
@@ -140,8 +168,15 @@
     "status": "inactive",
     "pricing_model": "subscription",
     "provider": "Nebula Digital",
-    "language_support": ["en"],
-    "tags": ["hr", "recruitment", "interviewing", "assessment"]
+    "language_support": [
+      "en"
+    ],
+    "tags": [
+      "hr",
+      "recruitment",
+      "interviewing",
+      "assessment"
+    ]
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -170,7 +205,50 @@
     "status": "inactive",
     "pricing_model": "subscription",
     "provider": "Nebula Digital",
-    "language_support": ["en"],
-    "tags": ["hr", "support", "onboarding", "helpdesk"]
+    "language_support": [
+      "en"
+    ],
+    "tags": [
+      "hr",
+      "support",
+      "onboarding",
+      "helpdesk"
+    ]
+  },
+  {
+    "id": "d32e86c1-eba9-436f-bb9d-8eaae07e8e3e",
+    "name": "Travel Pro Max",
+    "description": "Advanced travel planning assistant with expertise in luxury travel and custom itineraries",
+    "version": "1.0.0",
+    "category": "travel_planner",
+    "imageUrl": "https://nebuladigital.ai/agents/img/service-desk.png",
+    "capabilities": [
+      {
+        "name": "itinerary_planning",
+        "description": "Creates detailed travel itineraries",
+        "parameters": {
+          "destinations_limit": 10,
+          "max_days": 30
+        }
+      }
+    ],
+    "status": "active",
+    "pricing_model": "paid",
+    "price": 9.99,
+    "icon_url": null,
+    "created_at": "2025-04-28 19:22:25.781620",
+    "updated_at": "2025-04-28 19:22:25.781625",
+    "rating": null,
+    "total_reviews": 0,
+    "provider": "OpenAI",
+    "language_support": [
+      "en",
+      "es"
+    ],
+    "tags": [
+      "luxury",
+      "custom",
+      "international"
+    ]
   }
 ]

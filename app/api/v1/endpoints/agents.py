@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Path, Query
+from fastapi import APIRouter, HTTPException, Path, Query, Depends
 from typing import List, Optional
 from uuid import UUID
+from clerk_backend_api import Clerk
+from clerk_backend_api.models import ClerkErrors, SDKError
 
 from app.models.agent import Agent, AgentCategory, AgentStatus, PricingModel
 from app.models.agent_store import AgentStore

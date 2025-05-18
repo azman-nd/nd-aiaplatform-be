@@ -48,19 +48,26 @@ uvicorn app.main:app --reload
 
 ### Docker Setup
 
-1. Build and run using Docker Compose:
+1. Using the right docker compose yaml file.
+
+For development env use `docker-compose.yaml` file. It (a) usees `env.dev` env file, (b) connects to same network that is created by DB docker and (c) uses DB Hostname as mentioned that is reachable from DB service. 
+
+
+For production env use `docker-compose.prod.yaml` file. IT (a) uses `env.prod` env file, (b) creats its own network and (c) connects to DB server using a publicly reachable IP. 
+
+2. Build and run using Docker Compose:
 ```bash
-docker-compose up --build
+docker compose -f < filename > up --build
 ```
 
-2. To run in detached mode:
+3. To run in detached mode:
 ```bash
-docker-compose up -d
+docker compose -f < filename > up -d
 ```
 
-3. To stop the containers:
+4. To stop the containers:
 ```bash
-docker-compose down
+docker compose down
 ```
 
 The server will start and you can access:
@@ -68,6 +75,46 @@ The server will start and you can access:
 - ReDoc documentation at http://localhost:8000/redoc
 - Health check endpoint at http://localhost:8000/health
 - Root endpoint at http://localhost:8000/
+
+## Database Connection
+
+### Database Configuration
+
+The application uses PostgreSQL with the following features:
+- Connection pooling with health checks
+- Connection recycling after 1 hour
+- Schema-based isolation
+- Environment-specific host configuration:
+  - Development: Uses Docker service name 'postgres'
+  - Production: Uses actual database machine IP
+
+The database connection is configured through individual environment variables:
+```env
+DB_USER=<your_db_user>
+DB_PASSWORD=<your_db_password>
+DB_NAME=<your_db_name>
+DB_PORT=5432
+DB_HOST=<your_db_host>
+DB_SCHEMA=aiaplatform
+```
+
+The `DATABASE_URL` is automatically computed from these settings.
+
+### Finding Database Docker IP Address
+
+PostgreSQL docker is configured to accept remote connection. Therefore, in production env, update the `DB_HOST` in your environment file with the IP address of the machine where DB docker is running.
+
+### Verifying Database Connection
+
+You can verify the database connection and schema using the health check endpoint:
+```bash
+curl http://localhost:8000/health
+```
+
+The response will include:
+- Connection status
+- PostgreSQL version
+- Current schema name
 
 ## API Documentation
 
@@ -111,6 +158,76 @@ docker pull ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
 ```
 5. Run docker in EC2
 ```bash
+docker run -d -p 8000:8000 ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
+```
+
+## Environment Setup
+
+The application uses environment-specific configuration files. Create the following files in the `app` directory:
+
+### Development Environment (.env.dev)
+```env
+
+# Database Configuration
+DB_USER=<your_db_user>
+DB_PASSWORD=<your_db_password>
+DB_NAME=<your_db_name>
+DB_PORT=5432
+DB_HOST=postgres
+DB_SCHEMA=aiaplatform
 
 ```
+
+### Production Environment (.env.prod)
+```env
+# Database Configuration
+DB_USER=<your_db_user>
+DB_PASSWORD=<your_db_password>
+DB_NAME=<your_db_name>
+DB_PORT=5432
+DB_HOST=<your-db-machine-ip>
+DB_SCHEMA=aiaplatform
+```
+
+## Running the Application
+
+
+
+### Development
+```bash
+# Default (uses .env.dev)
+docker compose up
+
+# Or explicitly specify environment
+docker compose -f docker-compose.yaml up
+```
+
+### Production
+```bash
+docker compose -f docker-compose.prod.yaml up
+```
+
+## Database Configuration
+
+The application uses PostgreSQL with the following features:
+- Connection pooling with health checks
+- Connection recycling after 1 hour
+- Schema-based isolation
+- Environment-specific host configuration:
+  - Development: Uses Docker service name 'postgres'
+  - Production: Uses actual database machine IP
+
+## API Documentation
+
+Once the application is running, you can access:
+- API documentation at: http://localhost:8000/docs
+- Alternative API documentation at: http://localhost:8000/redoc
+
+## Health Check
+
+The application provides a health check endpoint at `/health` that verifies:
+- Database connectivity
+- PostgreSQL version
+- Current schema
+- Basic database operations
 
