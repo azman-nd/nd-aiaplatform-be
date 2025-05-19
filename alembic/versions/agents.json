@@ -5,7 +5,7 @@
     "description": "Create professional job descriptions with AI assistant that knows your industry and company. Say a little or a lot and let AI handle the rest!",
     "version": "1.0.0",
     "category": "customer_support",
-    "imageUrl": "https://nebuladigital.ai/agents/img/jd-writer.png",
+    "image_url": "https://nebuladigital.ai/agents/img/jd-writer.png",
     "capabilities": [
       {
         "name": "jd_generation",
@@ -27,7 +27,9 @@
       "job-description",
       "writing"
     ],
-    "display_order": 1
+    "display_order": 1,
+    "demo_url": "https://nebuladigital.ai",
+    "prod_url": "https://nebuladigital.ai"
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440002",
@@ -35,7 +37,7 @@
     "description": "From job role to growth goal - this AI agent builds your personalized upskilling path.",
     "version": "1.0.0",
     "category": "customer_support",
-    "imageUrl": "https://nebuladigital.ai/agents/img/learning-path.png",
+    "image_url": "https://nebuladigital.ai/agents/img/learning-path.png",
     "capabilities": [
       {
         "name": "learning_roadmap",
@@ -59,7 +61,9 @@
     ],
     "created_at": "2024-03-14T12:00:00Z",
     "updated_at": "2024-03-14T12:00:00Z",
-    "display_order": 2
+    "display_order": 2,
+    "demo_url": "https://nebuladigital.ai",
+    "prod_url": "https://nebuladigital.ai"
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440003",
@@ -67,7 +71,7 @@
     "description": "Your personal nudge toward better performance—powered by smart feedback and clear goals.",
     "version": "1.0.0",
     "category": "customer_support",
-    "imageUrl": "https://nebuladigital.ai/agents/img/perf-coach.png",
+    "image_url": "https://nebuladigital.ai/agents/img/perf-coach.png",
     "capabilities": [
       {
         "name": "performance_coaching",
@@ -89,7 +93,9 @@
       "coaching",
       "feedback"
     ],
-    "display_order": 3
+    "display_order": 3,
+    "demo_url": "https://nebuladigital.ai",
+    "prod_url": "https://nebuladigital.ai"
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440004",
@@ -97,7 +103,7 @@
     "description": "This smart assistant reads JDs, scans CVs, and ranks candidates by how well they match. Save hours, hire faster, and never miss the right talent again.",
     "version": "1.0.0",
     "category": "customer_support",
-    "imageUrl": "https://nebuladigital.ai/agents/img/cv-sort.png",
+    "image_url": "https://nebuladigital.ai/agents/img/cv-sort.png",
     "capabilities": [
       {
         "name": "cv_sorting",
@@ -119,7 +125,9 @@
       "cv-screening",
       "hiring"
     ],
-    "display_order": 4
+    "display_order": 4,
+    "demo_url": "https://nebuladigital.ai",
+    "prod_url": "https://nebuladigital.ai"
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440005",
@@ -127,7 +135,7 @@
     "description": "Ask smarter, hire better—AI that generates tailored questions and helps assess the right fit.",
     "version": "1.0.0",
     "category": "customer_support",
-    "imageUrl": "https://nebuladigital.ai/agents/img/interview.png",
+    "image_url": "https://nebuladigital.ai/agents/img/interview.png",
     "capabilities": [
       {
         "name": "interview_assistance",
@@ -149,7 +157,9 @@
       "interviewing",
       "assessment"
     ],
-    "display_order": 5
+    "display_order": 5,
+    "demo_url": "https://nebuladigital.ai",
+    "prod_url": "https://nebuladigital.ai"
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -157,7 +167,7 @@
     "description": "Answers at your fingertips with your AI-agent knowing everything work-related.",
     "version": "1.0.0",
     "category": "customer_support",
-    "imageUrl": "https://nebuladigital.ai/agents/img/service-desk.png",
+    "image_url": "https://nebuladigital.ai/agents/img/service-desk.png",
     "capabilities": [
       {
         "name": "support_assistance",
@@ -179,6 +189,8 @@
       "onboarding",
       "helpdesk"
     ],
-    "display_order": 6
+    "display_order": 6,
+    "demo_url": "https://nebuladigital.ai",
+    "prod_url": "https://nebuladigital.ai"
   }
 ]

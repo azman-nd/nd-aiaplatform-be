@@ -43,6 +43,8 @@ def upgrade():
         sa.Column('provider', sa.String(100), nullable=False),
         sa.Column('language_support', postgresql.JSON, nullable=False, server_default='["en"]'),
         sa.Column('tags', postgresql.JSON, nullable=False, server_default='[]'),
+        sa.Column('demo_url', sa.String, nullable=True),
+        sa.Column('prod_url', sa.String, nullable=True),
         schema=DB_SCHEMA
     )
 

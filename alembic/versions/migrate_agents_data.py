@@ -52,11 +52,11 @@ def upgrade():
                 INSERT INTO agents (
                     id, name, title, description, version, image_url, features,
                     status, pricing_model, price, display_order, created_at, updated_at,
-                    provider, language_support, tags
+                    provider, language_support, tags, demo_url, prod_url
                 ) VALUES (
                     :id, :name, :title, :description, :version, :image_url, :features,
                     :status, :pricing_model, :price, :display_order, :created_at, :updated_at,
-                    :provider, :language_support, :tags
+                    :provider, :language_support, :tags, :demo_url, :prod_url
                 )
             """),
             {
@@ -65,7 +65,7 @@ def upgrade():
                 'title': agent['name'],
                 'description': agent['description'],
                 'version': agent['version'],
-                'image_url': agent.get('imageUrl'),
+                'image_url': agent.get('image_url'),
                 'features': features,
                 'status': agent.get('status', 'active'),
                 'pricing_model': agent['pricing_model'],
@@ -75,7 +75,9 @@ def upgrade():
                 'updated_at': updated_at,
                 'provider': agent['provider'],
                 'language_support': agent['language_support'],
-                'tags': agent['tags']
+                'tags': agent['tags'],
+                'demo_url': agent.get('demo_url'),
+                'prod_url': agent.get('prod_url')
             }
         )
 

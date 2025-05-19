@@ -46,6 +46,7 @@ def sample_agent_data():
         "title": "Test Title",
         "description": "This is a test description that is long enough to meet the minimum length requirement",
         "version": "1.0.0",
+        "image_url": "https://example.com/image.png",
         "features": "Feature 1\nFeature 2\nFeature 3",
         "status": "active",
         "pricing_model": "paid",
@@ -53,7 +54,9 @@ def sample_agent_data():
         "provider": "Test Provider",
         "language_support": ["en"],
         "tags": ["test", "sample"],
-        "display_order": 1
+        "display_order": 1,
+        "demo_url": "https://demo.test.com",
+        "prod_url": "https://prod.test.com"
     }
 
 # Cleanup database before each test
@@ -90,6 +93,9 @@ def test_create_agent(client, db_session, sample_agent_data):
     assert data["name"] == sample_agent_data["name"]
     assert data["title"] == sample_agent_data["title"]
     assert data["description"] == sample_agent_data["description"]
+    assert data["image_url"] == sample_agent_data["image_url"]
+    assert data["demo_url"] == sample_agent_data["demo_url"]
+    assert data["prod_url"] == sample_agent_data["prod_url"]
     assert UUID(data["id"])  # Verify UUID format
 
 def test_create_agent_duplicate_name(client, db_session, sample_agent_data):
@@ -127,6 +133,9 @@ def test_get_agent(client, db_session, sample_agent_data):
     data = response.json()
     assert data["id"] == agent_id
     assert data["name"] == sample_agent_data["name"]
+    assert data["image_url"] == sample_agent_data["image_url"]
+    assert data["demo_url"] == sample_agent_data["demo_url"]
+    assert data["prod_url"] == sample_agent_data["prod_url"]
 
 def test_get_agent_not_found(client):
     """
@@ -155,6 +164,9 @@ def test_update_agent(client, db_session, sample_agent_data):
     update_data = sample_agent_data.copy()
     update_data["name"] = "Updated Agent Name"
     update_data["description"] = "Updated description"
+    update_data["image_url"] = "https://example.com/updated-image.png"
+    update_data["demo_url"] = "https://demo.updated.com"
+    update_data["prod_url"] = "https://prod.updated.com"
 
     response = client.put(f"/api/v1/agents/{agent_id}", json=update_data)
     assert response.status_code == status.HTTP_200_OK
@@ -162,6 +174,9 @@ def test_update_agent(client, db_session, sample_agent_data):
     assert data["id"] == agent_id
     assert data["name"] == update_data["name"]
     assert data["description"] == update_data["description"]
+    assert data["image_url"] == update_data["image_url"]
+    assert data["demo_url"] == update_data["demo_url"]
+    assert data["prod_url"] == update_data["prod_url"]
 
 def test_update_agent_not_found(client, sample_agent_data):
     """
@@ -527,4 +542,65 @@ def test_get_agent_includes_display_order(client, db_session):
     response = client.get(f"/api/v1/agents/{agent.id}")
     assert response.status_code == 200
     retrieved_agent = response.json()
-    assert retrieved_agent["display_order"] == 1 
+    assert retrieved_agent["display_order"] == 1
+
+def test_create_agent_with_optional_urls(client, db_session):
+    """
+    Test Case: Create agent with optional URLs
+    - Verifies that demo_url and prod_url are optional
+    - Tests creation without URLs
+    - Ensures proper handling of null values
+    """
+    agent_data = {
+        "name": "Test Agent No URLs",
+        "title": "Test Title",
+        "description": "This is a test description that is long enough to meet the minimum length requirement",
+        "version": "1.0.0",
+        "features": "Feature 1\nFeature 2\nFeature 3",
+        "status": "active",
+        "pricing_model": "paid",
+        "price": 9.99,
+        "provider": "Test Provider",
+        "language_support": ["en"],
+        "tags": ["test", "sample"],
+        "display_order": 1
+    }
+    response = client.post("/api/v1/agents/", json=agent_data)
+    assert response.status_code == status.HTTP_201_CREATED
+    data = response.json()
+    assert data["demo_url"] is None
+    assert data["prod_url"] is None
+
+def test_update_agent_urls_only(client, db_session, sample_agent_data):
+    """
+    Test Case: Update only the URLs of an agent
+    - Verifies partial update of URLs
+    - Tests updating only demo_url
+    - Tests updating only prod_url
+    - Ensures other fields remain unchanged
+    """
+    # Create agent
+    create_response = client.post("/api/v1/agents/", json=sample_agent_data)
+    agent_id = create_response.json()["id"]
+
+    # Update only demo_url
+    update_data = {
+        "demo_url": "https://demo.updated.com"
+    }
+    response = client.put(f"/api/v1/agents/{agent_id}", json=update_data)
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["demo_url"] == update_data["demo_url"]
+    assert data["prod_url"] == sample_agent_data["prod_url"]
+    assert data["name"] == sample_agent_data["name"]  # Other fields unchanged
+
+    # Update only prod_url
+    update_data = {
+        "prod_url": "https://prod.updated.com"
+    }
+    response = client.put(f"/api/v1/agents/{agent_id}", json=update_data)
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["prod_url"] == update_data["prod_url"]
+    assert data["demo_url"] == "https://demo.updated.com"  # Previous update preserved
+    assert data["name"] == sample_agent_data["name"]  # Other fields unchanged 

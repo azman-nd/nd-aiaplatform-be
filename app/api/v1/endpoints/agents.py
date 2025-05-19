@@ -49,11 +49,25 @@ async def create_agent(
 ):
     """
     Create a new agent.
+    
+    - **name**: Unique name for the agent
+    - **title**: Display title for the agent
+    - **description**: Detailed description of the agent
+    - **version**: Semantic version (e.g., "1.0.0")
+    - **image_url**: Optional URL to agent's image
+    - **features**: Newline-separated list of features
+    - **status**: Agent status (active/inactive/maintenance/deprecated)
+    - **pricing_model**: Pricing model (free/paid/subscription)
+    - **price**: Price for paid agents
+    - **display_order**: Order in which to display the agent
+    - **provider**: Name of the agent provider
+    - **language_support**: List of supported languages
+    - **tags**: List of tags for the agent
+    - **demo_url**: Optional URL to demo environment
+    - **prod_url**: Optional URL to production environment
     """
     agent_service = AgentService(db)
-    # Check for duplicate name
-    all_agents = agent_service.get_all_agents()
-    if any(a.name == agent.name for a in all_agents):
+    if agent_service.get_agent_by_name(agent.name):
         raise HTTPException(status_code=400, detail="An agent with this name already exists")
     return agent_service.create_agent(agent)
 

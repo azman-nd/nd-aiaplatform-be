@@ -28,46 +28,74 @@ class AgentService:
         
         return [self._db_to_model(agent) for agent in db_agents]
 
-    def get_agent_by_id(self, agent_id: UUID) -> Optional[Agent]:
-        query = select(AgentDB).where(AgentDB.id == agent_id)
-        db_agent = self.db.execute(query).scalar_one_or_none()
-        return self._db_to_model(db_agent) if db_agent else None
+    def get_agent_by_id(self, agent_id: UUID) -> Optional[AgentDB]:
+        return self.db.query(AgentDB).filter(AgentDB.id == agent_id).first()
 
-    def create_agent(self, agent: AgentCreate) -> Agent:
-        db_agent = AgentDB(**agent.model_dump())
+    def get_agent_by_name(self, name: str) -> Optional[AgentDB]:
+        return self.db.query(AgentDB).filter(AgentDB.name == name).first()
+
+    def create_agent(self, agent: AgentCreate) -> AgentDB:
+        db_agent = AgentDB(
+            name=agent.name,
+            title=agent.title,
+            description=agent.description,
+            version=agent.version,
+            image_url=str(agent.image_url) if agent.image_url else None,
+            features=agent.features,
+            status=agent.status,
+            pricing_model=agent.pricing_model,
+            price=agent.price,
+            display_order=agent.display_order,
+            provider=agent.provider,
+            language_support=agent.language_support,
+            tags=agent.tags,
+            demo_url=agent.demo_url,
+            prod_url=agent.prod_url
+        )
         self.db.add(db_agent)
         self.db.commit()
         self.db.refresh(db_agent)
-        return self._db_to_model(db_agent)
+        return db_agent
 
-    def update_agent(self, agent_id: UUID, agent: AgentUpdate) -> Optional[Agent]:
-        query = select(AgentDB).where(AgentDB.id == agent_id)
-        db_agent = self.db.execute(query).scalar_one_or_none()
-        
+    def update_agent(self, agent_id: UUID, agent: AgentUpdate) -> Optional[AgentDB]:
+        db_agent = self.get_agent_by_id(agent_id)
         if not db_agent:
             return None
-        
+
         update_data = agent.model_dump(exclude_unset=True)
+        if "image_url" in update_data and update_data["image_url"]:
+            update_data["image_url"] = str(update_data["image_url"])
+
         for key, value in update_data.items():
-            if key == "id":
-                continue
-            if hasattr(db_agent, key):
-                setattr(db_agent, key, value)
-        
+            setattr(db_agent, key, value)
+
         self.db.commit()
         self.db.refresh(db_agent)
-        return self._db_to_model(db_agent)
+        return db_agent
 
     def delete_agent(self, agent_id: UUID) -> bool:
-        query = select(AgentDB).where(AgentDB.id == agent_id)
-        db_agent = self.db.execute(query).scalar_one_or_none()
-        
+        db_agent = self.get_agent_by_id(agent_id)
         if not db_agent:
             return False
-            
         self.db.delete(db_agent)
         self.db.commit()
         return True
+
+    def list_agents(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        status: Optional[str] = None,
+        pricing_model: Optional[str] = None
+    ) -> List[AgentDB]:
+        query = self.db.query(AgentDB)
+        
+        if status:
+            query = query.filter(AgentDB.status == status)
+        if pricing_model:
+            query = query.filter(AgentDB.pricing_model == pricing_model)
+            
+        return query.order_by(AgentDB.display_order).offset(skip).limit(limit).all()
 
     def _db_to_model(self, db_agent: AgentDB) -> Agent:
         return Agent(
@@ -76,7 +104,7 @@ class AgentService:
             title=db_agent.title,
             description=db_agent.description,
             version=db_agent.version,
-            imageUrl=db_agent.image_url,
+            image_url=db_agent.image_url,
             features=db_agent.features,
             status=db_agent.status,
             pricing_model=db_agent.pricing_model,
@@ -86,5 +114,7 @@ class AgentService:
             updated_at=db_agent.updated_at,
             provider=db_agent.provider,
             language_support=db_agent.language_support,
-            tags=db_agent.tags
+            tags=db_agent.tags,
+            demo_url=db_agent.demo_url,
+            prod_url=db_agent.prod_url
         ) 

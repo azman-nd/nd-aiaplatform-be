@@ -21,6 +21,8 @@ class AgentBase(BaseModel):
     provider: str
     language_support: List[str] = ["en"]
     tags: List[str] = []
+    demo_url: Optional[str] = None
+    prod_url: Optional[str] = None
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -37,7 +39,9 @@ class AgentBase(BaseModel):
                 "provider": "Nebula Digital",
                 "language_support": ["en"],
                 "tags": ["hr", "recruitment", "job-description"],
-                "display_order": 1
+                "display_order": 1,
+                "demo_url": "https://demo.example.com",
+                "prod_url": "https://prod.example.com"
             }
         }
     )
@@ -59,9 +63,38 @@ class AgentUpdate(BaseModel):
     provider: Optional[str] = None
     language_support: Optional[List[str]] = None
     tags: Optional[List[str]] = None
+    demo_url: Optional[str] = None
+    prod_url: Optional[str] = None
 
 class Agent(AgentBase):
     id: UUID = Field(default_factory=uuid4)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    model_config = ConfigDict(from_attributes=True) 
+    model_config = ConfigDict(from_attributes=True)
+    demo_url: Optional[str] = None
+    prod_url: Optional[str] = None
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "name": "example-agent",
+                "title": "Example Agent",
+                "description": "This is an example agent that demonstrates the required fields and their formats.",
+                "version": "1.0.0",
+                "image_url": "https://example.com/image.png",
+                "features": "Feature 1\nFeature 2\nFeature 3",
+                "status": "active",
+                "pricing_model": "paid",
+                "price": 9.99,
+                "display_order": 1,
+                "created_at": "2024-03-14T12:00:00Z",
+                "updated_at": "2024-03-14T12:00:00Z",
+                "provider": "Example Provider",
+                "language_support": ["en"],
+                "tags": ["example", "test"],
+                "demo_url": "https://demo.example.com",
+                "prod_url": "https://prod.example.com"
+            }
+        }
+    ) 

@@ -54,17 +54,18 @@ def client(db_session):
 @pytest.fixture(scope="function")
 def sample_agent_data():
     return {
-        "name": "Test Agent",
-        "title": "Test Agent Title",
-        "description": "This is a test agent description",
+        "name": "test-agent",
+        "title": "Test Agent",
+        "description": "This is a test agent",
         "version": "1.0.0",
-        "imageUrl": "https://example.com/image.png",
-        "features": "Feature 1\nFeature 2\nFeature 3",
+        "image_url": "https://example.com/image.png",
+        "features": "Feature 1\nFeature 2",
         "status": "active",
-        "pricing_model": "paid",
-        "price": 9.99,
+        "pricing_model": "free",
         "provider": "Test Provider",
         "language_support": ["en"],
-        "tags": ["test", "sample"],
-        "display_order": 1
+        "tags": ["test"],
+        "display_order": 1,
+        "demo_url": "https://demo.example.com",
+        "prod_url": "https://prod.example.com"
     } 
