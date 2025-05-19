@@ -65,5 +65,6 @@ def sample_agent_data():
         "price": 9.99,
         "provider": "Test Provider",
         "language_support": ["en"],
-        "tags": ["test", "sample"]
+        "tags": ["test", "sample"],
+        "display_order": 1
     } 

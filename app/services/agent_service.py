@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.database import AgentDB
-from app.models.agent import Agent, AgentStatus, PricingModel
+from app.models.schemas import Agent, AgentStatus, PricingModel, AgentCreate, AgentUpdate
 
 class AgentService:
     def __init__(self, db: Session):
@@ -23,7 +23,7 @@ class AgentService:
         if pricing_model:
             query = query.where(AgentDB.pricing_model == pricing_model)
             
-        query = query.offset(skip).limit(limit)
+        query = query.order_by(AgentDB.display_order.asc()).offset(skip).limit(limit)
         db_agents = self.db.execute(query).scalars().all()
         
         return [self._db_to_model(agent) for agent in db_agents]
@@ -33,34 +33,22 @@ class AgentService:
         db_agent = self.db.execute(query).scalar_one_or_none()
         return self._db_to_model(db_agent) if db_agent else None
 
-    def create_agent(self, agent: Agent) -> Agent:
-        db_agent = AgentDB(
-            name=agent.name,
-            title=agent.title,
-            description=agent.description,
-            version=agent.version,
-            image_url=str(agent.imageUrl) if agent.imageUrl else None,
-            features=agent.features,
-            status=agent.status,
-            pricing_model=agent.pricing_model,
-            price=agent.price,
-            provider=agent.provider,
-            language_support=agent.language_support,
-            tags=agent.tags
-        )
+    def create_agent(self, agent: AgentCreate) -> Agent:
+        db_agent = AgentDB(**agent.model_dump())
         self.db.add(db_agent)
         self.db.commit()
         self.db.refresh(db_agent)
         return self._db_to_model(db_agent)
 
-    def update_agent(self, agent_id: UUID, agent_data: dict) -> Optional[Agent]:
+    def update_agent(self, agent_id: UUID, agent: AgentUpdate) -> Optional[Agent]:
         query = select(AgentDB).where(AgentDB.id == agent_id)
         db_agent = self.db.execute(query).scalar_one_or_none()
         
         if not db_agent:
             return None
         
-        for key, value in agent_data.items():
+        update_data = agent.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
             if key == "id":
                 continue
             if hasattr(db_agent, key):
@@ -93,6 +81,7 @@ class AgentService:
             status=db_agent.status,
             pricing_model=db_agent.pricing_model,
             price=db_agent.price,
+            display_order=db_agent.display_order,
             created_at=db_agent.created_at,
             updated_at=db_agent.updated_at,
             provider=db_agent.provider,

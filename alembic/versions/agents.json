@@ -11,14 +11,7 @@
         "name": "jd_generation",
         "description": "Creates polished job descriptions from minimal input",
         "parameters": {
-          "features": [
-            "Input few words, get polished JD",
-            "Industry & Company context",
-            "Conversational & In-Place editing",
-            "Customized UX for JD writing",
-            "Create your own JD template",
-            "Export JD and Share with others"
-          ]
+          "features": "<div>Input few words, get polished JD<br>Industry & Company context<br>Conversational & In-Place editing<br>Customized UX for JD writing<br>Create your own JD template<br>Export JD and Share with others</div>"
         }
       }
     ],
@@ -33,7 +26,8 @@
       "recruitment",
       "job-description",
       "writing"
-    ]
+    ],
+    "display_order": 1
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440002",
@@ -47,14 +41,7 @@
         "name": "learning_roadmap",
         "description": "Builds personalized learning and development paths",
         "parameters": {
-          "features": [
-            "Reads JD and skill profile",
-            "Builds tailored learning roadmap",
-            "Recommends courses, content, mentors",
-            "Tracks progress and adapts path",
-            "Integrates with LMS platforms",
-            "Boosts retention with smart upskilling"
-          ]
+          "features": "<div>Reads JD and skill profile<br>Builds tailored learning roadmap<br>Recommends courses, content, mentors<br>Tracks progress and adapts path<br>Integrates with LMS platforms<br>Boosts retention with smart upskilling</div>"
         }
       }
     ],
@@ -71,12 +58,13 @@
       "upskilling"
     ],
     "created_at": "2024-03-14T12:00:00Z",
-    "updated_at": "2024-03-14T12:00:00Z"
+    "updated_at": "2024-03-14T12:00:00Z",
+    "display_order": 2
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440003",
     "name": "Performance Coach",
-    "description": "Your personal nudge toward better performance\u2014powered by smart feedback and clear goals.",
+    "description": "Your personal nudge toward better performance—powered by smart feedback and clear goals.",
     "version": "1.0.0",
     "category": "customer_support",
     "imageUrl": "https://nebuladigital.ai/agents/img/perf-coach.png",
@@ -85,13 +73,7 @@
         "name": "performance_coaching",
         "description": "Provides personalized performance improvement guidance",
         "parameters": {
-          "features": [
-            "Summarizes feedback into growth tips",
-            "Suggests micro-goals or habits",
-            "Tracks progress on goals",
-            "Prompts reflection & self-evaluation",
-            "Works alongside performance review cycles"
-          ]
+          "features": "<div>Summarizes feedback into growth tips<br>Suggests micro-goals or habits<br>Tracks progress on goals<br>Prompts reflection & self-evaluation<br>Works alongside performance review cycles</div>"
         }
       }
     ],
@@ -106,7 +88,8 @@
       "performance",
       "coaching",
       "feedback"
-    ]
+    ],
+    "display_order": 3
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440004",
@@ -120,13 +103,7 @@
         "name": "cv_sorting",
         "description": "Automated CV scanning and ranking system",
         "parameters": {
-          "features": [
-            "Reads JDs like a recruiter",
-            "Scans CVs in seconds flat",
-            "Ranks candidates by best match",
-            "Learns your hiring preferences fast",
-            "Plug it in, hire smarter"
-          ]
+          "features": "<div>Reads JDs like a recruiter<br>Scans CVs in seconds flat<br>Ranks candidates by best match<br>Learns your hiring preferences fast<br>Plug it in, hire smarter</div>"
         }
       }
     ],
@@ -141,12 +118,13 @@
       "recruitment",
       "cv-screening",
       "hiring"
-    ]
+    ],
+    "display_order": 4
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440005",
     "name": "Interview Assistant",
-    "description": "Ask smarter, hire better\u2014AI that generates tailored questions and helps assess the right fit.",
+    "description": "Ask smarter, hire better—AI that generates tailored questions and helps assess the right fit.",
     "version": "1.0.0",
     "category": "customer_support",
     "imageUrl": "https://nebuladigital.ai/agents/img/interview.png",
@@ -155,13 +133,7 @@
         "name": "interview_assistance",
         "description": "Generates and manages interview questions and assessments",
         "parameters": {
-          "features": [
-            "Generates role-specific interview questions",
-            "Covers tech, behavioral, and soft skills",
-            "Provides ideal sample answers",
-            "Helps score answers with rubrics",
-            "Customizable interview templates by role"
-          ]
+          "features": "<div>Generates role-specific interview questions<br>Covers tech, behavioral, and soft skills<br>Provides ideal sample answers<br>Helps score answers with rubrics<br>Customizable interview templates by role</div>"
         }
       }
     ],
@@ -176,7 +148,8 @@
       "recruitment",
       "interviewing",
       "assessment"
-    ]
+    ],
+    "display_order": 5
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -190,15 +163,7 @@
         "name": "support_assistance",
         "description": "Comprehensive workplace support and guidance system",
         "parameters": {
-          "features": [
-            "Answers onboarding & policy questions",
-            "Explains IT, HR, finance, & ops processes",
-            "Guides through common tasks",
-            "Works across departments and levels",
-            "Available 24/7 across web and mobile",
-            "Continuously learns from internal knowledge sources",
-            "Reduces support load across HR and IT"
-          ]
+          "features": "<div>Answers onboarding & policy questions<br>Explains IT, HR, finance, & ops processes<br>Guides through common tasks<br>Works across departments and levels<br>Available 24/7 across web and mobile<br>Continuously learns from internal knowledge sources<br>Reduces support load across HR and IT</div>"
         }
       }
     ],
@@ -213,6 +178,7 @@
       "support",
       "onboarding",
       "helpdesk"
-    ]
+    ],
+    "display_order": 6
   }
 ]

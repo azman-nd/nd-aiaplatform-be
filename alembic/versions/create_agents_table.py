@@ -37,6 +37,7 @@ def upgrade():
         sa.Column('status', sa.String(20), nullable=False, server_default='active'),
         sa.Column('pricing_model', sa.String(20), nullable=False),
         sa.Column('price', sa.Float, nullable=True),
+        sa.Column('display_order', sa.Integer, nullable=False, server_default='0'),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('provider', sa.String(100), nullable=False),

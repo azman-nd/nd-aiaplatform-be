@@ -24,7 +24,7 @@ def upgrade():
     connection = op.get_bind()
     
     # Load agents from JSON file
-    json_file = os.path.join(os.path.dirname(__file__), '..', '..', 'app', 'models', 'data', 'agents.json')
+    json_file = os.path.join(os.path.dirname(__file__), 'agents.json')
     with open(json_file, 'r') as f:
         agents_data = json.load(f)
 
@@ -34,13 +34,12 @@ def upgrade():
         created_at = datetime.fromisoformat(agent.get('created_at', datetime.utcnow().isoformat()))
         updated_at = datetime.fromisoformat(agent.get('updated_at', datetime.utcnow().isoformat()))
         
-        # Extract features and join with newlines, with safe fallback
-        features = []
+        # Get features as HTML string directly from the JSON
+        features = ""
         if agent.get('capabilities') and len(agent['capabilities']) > 0:
             capability = agent['capabilities'][0]
             if capability.get('parameters', {}).get('features'):
                 features = capability['parameters']['features']
-        features_text = '\n'.join(features)
         id_alias = agent['capabilities'][0]['name']
 
         # Convert other dict/list values to JSON strings
@@ -52,11 +51,11 @@ def upgrade():
             sa.text("""
                 INSERT INTO agents (
                     id, name, title, description, version, image_url, features,
-                    status, pricing_model, price, created_at, updated_at,
+                    status, pricing_model, price, display_order, created_at, updated_at,
                     provider, language_support, tags
                 ) VALUES (
                     :id, :name, :title, :description, :version, :image_url, :features,
-                    :status, :pricing_model, :price, :created_at, :updated_at,
+                    :status, :pricing_model, :price, :display_order, :created_at, :updated_at,
                     :provider, :language_support, :tags
                 )
             """),
@@ -67,10 +66,11 @@ def upgrade():
                 'description': agent['description'],
                 'version': agent['version'],
                 'image_url': agent.get('imageUrl'),
-                'features': features_text,
+                'features': features,
                 'status': agent.get('status', 'active'),
                 'pricing_model': agent['pricing_model'],
                 'price': agent.get('price'),
+                'display_order': agent.get('display_order', 0),
                 'created_at': created_at,
                 'updated_at': updated_at,
                 'provider': agent['provider'],

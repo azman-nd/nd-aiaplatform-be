@@ -213,6 +213,9 @@ docker compose exec api alembic downgrade -1  # Go back one migration
 # or
 docker compose exec api alembic downgrade <revision_id>  # Go to specific revision
 
+# Downgrade to base (initial) version (this drops tables too)
+docker compose exec api alembic downgrade base
+
 # View migration history
 docker compose exec api alembic history
 ```
@@ -343,4 +346,61 @@ docker pull ghcr.io/azman-nd/nd-aiaplatform-be-api:latest
    - Verify network configuration
    - Check container logs
    - Ensure ports are available
+
+## Migration
+
+To run migrations:
+
+```bash
+docker compose exec api alembic upgrade head
+```
+
+To downgrade migrations:
+
+```bash
+# Downgrade one version
+docker compose exec api alembic downgrade -1
+
+# Downgrade to base (initial state)
+docker compose exec api alembic downgrade base
+```
+
+To rerun migrations (downgrade to base and upgrade to latest):
+
+```bash
+docker compose exec api alembic downgrade base && docker compose exec api alembic upgrade head
+```
+
+## Development
+
+1. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Run the development server:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+## API Documentation
+
+Once the application is running, you can access the API documentation at:
+
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Testing
+
+To run tests:
+
+```bash
+pytest
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 

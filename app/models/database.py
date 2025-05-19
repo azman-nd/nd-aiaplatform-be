@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, Float, DateTime, JSON, Text
+from sqlalchemy import Column, String, Float, DateTime, JSON, Text, Integer, ForeignKey, Boolean, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 from uuid import uuid4
 
@@ -18,6 +19,7 @@ class AgentDB(Base):
     status = Column(String(20), nullable=False, default="active")
     pricing_model = Column(String(20), nullable=False)
     price = Column(Float)
+    display_order = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     provider = Column(String(100), nullable=False)

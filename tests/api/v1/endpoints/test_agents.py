@@ -2,11 +2,13 @@ import pytest
 from uuid import UUID
 from fastapi import status
 from sqlalchemy.orm import Session
-from app.models.agent import Agent
 from app.core.database import Base, get_db
 from app.main import app
 from fastapi.testclient import TestClient
 from typing import Generator
+from app.models.database import AgentDB
+from app.models.schemas import Agent, AgentStatus, PricingModel, AgentCreate, AgentUpdate
+from app.core.auth import get_current_user
 
 # Database session fixture
 @pytest.fixture(scope="function")
@@ -18,7 +20,7 @@ def db_session() -> Generator[Session, None, None]:
     finally:
         session.close()
 
-# Client fixture with database session
+# Client fixture with database session and mocked authentication
 @pytest.fixture(scope="function")
 def client(db_session: Session) -> Generator[TestClient, None, None]:
     def override_get_db():
@@ -26,8 +28,12 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
             yield db_session
         finally:
             pass
-    
+
+    def override_get_current_user():
+        return {"id": "test-user", "email": "test@example.com"}
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
@@ -46,7 +52,8 @@ def sample_agent_data():
         "price": 9.99,
         "provider": "Test Provider",
         "language_support": ["en"],
-        "tags": ["test", "sample"]
+        "tags": ["test", "sample"],
+        "display_order": 1
     }
 
 # Cleanup database before each test
@@ -69,7 +76,7 @@ def test_list_agents_empty(client):
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == []
 
-def test_create_agent(client, sample_agent_data):
+def test_create_agent(client, db_session, sample_agent_data):
     """
     Test Case: Create a new agent
     - Verifies successful agent creation
@@ -85,7 +92,7 @@ def test_create_agent(client, sample_agent_data):
     assert data["description"] == sample_agent_data["description"]
     assert UUID(data["id"])  # Verify UUID format
 
-def test_create_agent_duplicate_name(client, sample_agent_data):
+def test_create_agent_duplicate_name(client, db_session, sample_agent_data):
     """
     Test Case: Attempt to create agent with duplicate name
     - Verifies unique name constraint
@@ -102,7 +109,7 @@ def test_create_agent_duplicate_name(client, sample_agent_data):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "An agent with this name already exists"
 
-def test_get_agent(client, sample_agent_data):
+def test_get_agent(client, db_session, sample_agent_data):
     """
     Test Case: Retrieve a specific agent
     - Verifies successful agent retrieval by ID
@@ -132,7 +139,7 @@ def test_get_agent_not_found(client):
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()["detail"] == "Agent not found"
 
-def test_update_agent(client, sample_agent_data):
+def test_update_agent(client, db_session, sample_agent_data):
     """
     Test Case: Update an existing agent
     - Verifies successful agent update
@@ -170,13 +177,13 @@ def test_update_agent_not_found(client, sample_agent_data):
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()["detail"] == "Agent not found"
 
-def test_delete_agent(client, sample_agent_data):
+def test_delete_agent(client, db_session, sample_agent_data):
     """
     Test Case: Delete an existing agent
     - Verifies successful agent deletion
     - Ensures agent is actually removed from database
     - Validates can't retrieve deleted agent
-    - Checks correct status codes (204 No Content, 404 Not Found)
+    - Checks correct status codes (200 OK, 404 Not Found)
     """
     # Create agent
     create_response = client.post("/api/v1/agents/", json=sample_agent_data)
@@ -184,7 +191,8 @@ def test_delete_agent(client, sample_agent_data):
 
     # Delete agent
     response = client.delete(f"/api/v1/agents/{agent_id}")
-    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["message"] == "Agent deleted successfully"
 
     # Verify agent is deleted
     get_response = client.get(f"/api/v1/agents/{agent_id}")
@@ -395,4 +403,128 @@ def test_update_agent_duplicate_name(client, sample_agent_data):
     update_data["name"] = sample_agent_data["name"]
     response = client.put(f"/api/v1/agents/{second_agent_id}", json=update_data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["detail"] == "An agent with this name already exists" 
+    assert response.json()["detail"] == "An agent with this name already exists"
+
+def test_get_agents_ordered_by_display_order(client, db_session):
+    """
+    Test Case: Get agents ordered by display_order
+    - Verifies that agents are returned in order of display_order
+    - Tests multiple agents with different display_order values
+    - Ensures correct ordering in response
+    """
+    # Create test agents with different display orders
+    agent1 = AgentDB(
+        name="Test Agent 1",
+        title="Test Title 1",
+        description="Test Description 1",
+        version="1.0.0",
+        features="Test Features 1",
+        status="active",
+        pricing_model="free",
+        provider="Test Provider",
+        display_order=2
+    )
+    agent2 = AgentDB(
+        name="Test Agent 2",
+        title="Test Title 2",
+        description="Test Description 2",
+        version="1.0.0",
+        features="Test Features 2",
+        status="active",
+        pricing_model="free",
+        provider="Test Provider",
+        display_order=1
+    )
+    db_session.add(agent1)
+    db_session.add(agent2)
+    db_session.commit()
+
+    response = client.get("/api/v1/agents/")
+    assert response.status_code == 200
+    agents = response.json()
+    assert len(agents) == 2
+    # Verify agents are ordered by display_order
+    assert agents[0]["display_order"] == 1
+    assert agents[1]["display_order"] == 2
+
+def test_create_agent_with_display_order(client, db_session):
+    """
+    Test Case: Create agent with display_order
+    - Verifies that display_order is correctly set during creation
+    - Tests default display_order value
+    - Ensures display_order is included in response
+    """
+    agent_data = {
+        "name": "New Agent",
+        "title": "New Title",
+        "description": "New Description",
+        "version": "1.0.0",
+        "features": "New Features",
+        "status": "active",
+        "pricing_model": "free",
+        "provider": "Test Provider",
+        "display_order": 1
+    }
+    response = client.post("/api/v1/agents/", json=agent_data)
+    assert response.status_code == 201
+    created_agent = response.json()
+    assert created_agent["name"] == agent_data["name"]
+    assert created_agent["display_order"] == agent_data["display_order"]
+
+def test_update_agent_display_order(client, db_session):
+    """
+    Test Case: Update agent display_order
+    - Verifies that display_order can be updated
+    - Tests partial update with only display_order
+    - Ensures updated value is reflected in response
+    """
+    # Create a test agent
+    agent = AgentDB(
+        name="Test Agent",
+        title="Test Title",
+        description="Test Description",
+        version="1.0.0",
+        features="Test Features",
+        status="active",
+        pricing_model="free",
+        provider="Test Provider",
+        display_order=1
+    )
+    db_session.add(agent)
+    db_session.commit()
+
+    # Update the agent's display_order
+    update_data = {
+        "display_order": 2
+    }
+    response = client.put(f"/api/v1/agents/{agent.id}", json=update_data)
+    assert response.status_code == 200
+    updated_agent = response.json()
+    assert updated_agent["display_order"] == 2
+
+def test_get_agent_includes_display_order(client, db_session):
+    """
+    Test Case: Get agent includes display_order
+    - Verifies that display_order is included in get response
+    - Tests retrieval of agent with display_order
+    - Ensures correct value is returned
+    """
+    # Create a test agent
+    agent = AgentDB(
+        name="Test Agent",
+        title="Test Title",
+        description="Test Description",
+        version="1.0.0",
+        features="Test Features",
+        status="active",
+        pricing_model="free",
+        provider="Test Provider",
+        display_order=1
+    )
+    db_session.add(agent)
+    db_session.commit()
+
+    response = client.get(f"/api/v1/agents/{agent.id}")
+    assert response.status_code == 200
+    retrieved_agent = response.json()
+    assert retrieved_agent["display_order"] == 1 
