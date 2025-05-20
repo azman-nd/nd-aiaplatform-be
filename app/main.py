@@ -8,6 +8,7 @@ from app.core.database import engine
 from app.core.auth import get_current_user
 import logging
 from contextlib import asynccontextmanager
+from app.core.config import settings
 
 load_dotenv()
 
@@ -29,16 +30,17 @@ async def lifespan(app: FastAPI):
     # Add any cleanup code here if needed
 
 app = FastAPI(
-    title="AI Agent Platform",
+    title=settings.PROJECT_NAME,
     description="API for AI Agent Platform",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TODO: Configure specific origins in production
+    allow_origins=["*"],
     allow_credentials=True,  # Important for cookies/auth
     allow_methods=["*"],
     allow_headers=["*"],

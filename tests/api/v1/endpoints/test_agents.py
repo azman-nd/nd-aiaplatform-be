@@ -9,6 +9,9 @@ from typing import Generator
 from app.models.database import AgentDB
 from app.models.schemas import Agent, AgentStatus, PricingModel, AgentCreate, AgentUpdate
 from app.core.auth import get_current_user
+import jwt
+from unittest.mock import patch
+from app.core.permissions import check_role_and_permission
 
 # Database session fixture
 @pytest.fixture(scope="function")
@@ -30,13 +33,39 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
             pass
 
     def override_get_current_user():
-        return {"id": "test-user", "email": "test@example.com"}
+        return {
+            "id": "test-user",
+            "email": "test@example.com",
+            "o": {
+                "rol": "admin",
+                "per": "manage"
+            },
+            "fea": "all_content"
+        }
 
-    app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_current_user] = override_get_current_user
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()
+    # Mock JWT verification
+    def mock_jwt_decode(*args, **kwargs):
+        return {
+            "sub": "1234567890",
+            "name": "Test User",
+            "iat": 1516239022,
+            "fea": "all_content",
+            "o": {
+                "rol": "admin",
+                "per": "manage"
+            }
+        }
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode):
+        app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[get_current_user] = override_get_current_user
+        with TestClient(app) as test_client:
+            # Add Authorization header with a mock JWT token
+            test_client.headers = {
+                "Authorization": "Bearer mock_token"
+            }
+            yield test_client
+        app.dependency_overrides.clear()
 
 # Sample agent data fixture
 @pytest.fixture
@@ -604,3 +633,187 @@ def test_update_agent_urls_only(client, db_session, sample_agent_data):
     assert data["prod_url"] == update_data["prod_url"]
     assert data["demo_url"] == "https://demo.updated.com"  # Previous update preserved
     assert data["name"] == sample_agent_data["name"]  # Other fields unchanged 
+
+def test_create_agent_with_insufficient_permissions(client, db_session, sample_agent_data):
+    """
+    Test Case: Attempt to create agent with insufficient permissions
+    - Verifies that non-admin users cannot create agents
+    - Tests with incorrect role
+    - Tests with incorrect permission
+    - Ensures proper error messages
+    """
+    # Mock JWT with incorrect role
+    def mock_jwt_decode_incorrect_role(*args, **kwargs):
+        return {
+            "sub": "1234567890",
+            "name": "Test User",
+            "iat": 1516239022,
+            "fea": "all_content",
+            "o": {
+                "rol": "user",  # Incorrect role
+                "per": "manage"
+            }
+        }
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode_incorrect_role):
+        response = client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Insufficient role" in response.json()["detail"]
+
+    # Mock JWT with incorrect permission
+    def mock_jwt_decode_incorrect_permission(*args, **kwargs):
+        return {
+            "sub": "1234567890",
+            "name": "Test User",
+            "iat": 1516239022,
+            "fea": "all_content",
+            "o": {
+                "rol": "admin",
+                "per": "view"  # Incorrect permission
+            }
+        }
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode_incorrect_permission):
+        response = client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Insufficient permissions" in response.json()["detail"]
+
+def test_create_agent_with_missing_token(client, db_session, sample_agent_data):
+    """
+    Test Case: Attempt to create agent without authentication token
+    - Verifies that requests without token are rejected
+    - Tests with missing Authorization header
+    - Tests with invalid token format
+    - Ensures proper error messages
+    """
+    # Test with no Authorization header
+    with TestClient(app) as test_client:
+        response = test_client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "Invalid authorization header" in response.json()["detail"]
+
+    # Test with invalid token format
+    with TestClient(app) as test_client:
+        test_client.headers = {"Authorization": "InvalidFormat"}
+        response = test_client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "Invalid authorization header" in response.json()["detail"]
+
+def test_create_agent_with_invalid_token(client, db_session, sample_agent_data):
+    """
+    Test Case: Attempt to create agent with invalid token
+    - Verifies that invalid tokens are rejected
+    - Tests with expired token
+    - Tests with malformed token
+    - Ensures proper error messages
+    """
+    # Mock expired token
+    def mock_jwt_decode_expired(*args, **kwargs):
+        raise jwt.ExpiredSignatureError("Token has expired")
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode_expired):
+        response = client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "Token has expired" in response.json()["detail"]
+
+    # Mock invalid token
+    def mock_jwt_decode_invalid(*args, **kwargs):
+        raise jwt.InvalidTokenError("Invalid token")
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode_invalid):
+        response = client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "Invalid token" in response.json()["detail"] 
+
+def test_create_agent_with_missing_org_data(client, db_session, sample_agent_data):
+    """
+    Test Case: Attempt to create agent with missing organization data
+    - Verifies handling of missing org data in token
+    - Tests token with no 'o' field
+    - Ensures proper error message
+    """
+    def mock_jwt_decode_no_org(*args, **kwargs):
+        return {
+            "sub": "1234567890",
+            "name": "Test User",
+            "iat": 1516239022,
+            "fea": "all_content"
+            # Missing 'o' field
+        }
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode_no_org):
+        response = client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "No organization data found in token" in response.json()["detail"]
+
+def test_create_agent_with_missing_features(client, db_session, sample_agent_data):
+    """
+    Test Case: Attempt to create agent with missing features
+    - Verifies handling of missing features in token
+    - Tests token with no 'fea' field
+    - Ensures proper error message
+    """
+    def mock_jwt_decode_no_features(*args, **kwargs):
+        return {
+            "sub": "1234567890",
+            "name": "Test User",
+            "iat": 1516239022,
+            "o": {
+                "rol": "admin",
+                "per": "manage"
+            }
+            # Missing 'fea' field
+        }
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode_no_features):
+        response = client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "No feature data found in token" in response.json()["detail"]
+
+def test_create_agent_with_empty_features(client, db_session, sample_agent_data):
+    """
+    Test Case: Attempt to create agent with empty features
+    - Verifies handling of empty features list
+    - Tests token with empty 'fea' field
+    - Ensures proper error message
+    """
+    def mock_jwt_decode_empty_features(*args, **kwargs):
+        return {
+            "sub": "1234567890",
+            "name": "Test User",
+            "iat": 1516239022,
+            "fea": "",  # Empty features
+            "o": {
+                "rol": "admin",
+                "per": "manage"
+            }
+        }
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode_empty_features):
+        response = client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "No feature data found in token" in response.json()["detail"]
+
+def test_create_agent_with_empty_permissions(client, db_session, sample_agent_data):
+    """
+    Test Case: Attempt to create agent with empty permissions
+    - Verifies handling of empty permissions list
+    - Tests token with empty 'per' field
+    - Ensures proper error message
+    """
+    def mock_jwt_decode_empty_permissions(*args, **kwargs):
+        return {
+            "sub": "1234567890",
+            "name": "Test User",
+            "iat": 1516239022,
+            "fea": "all_content",
+            "o": {
+                "rol": "admin",
+                "per": ""  # Empty permissions
+            }
+        }
+
+    with patch('jwt.decode', side_effect=mock_jwt_decode_empty_permissions):
+        response = client.post("/api/v1/agents/", json=sample_agent_data)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "Insufficient permissions" in response.json()["detail"] 

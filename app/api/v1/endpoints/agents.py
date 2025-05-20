@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Path, Query, Depends
+from fastapi import APIRouter, HTTPException, Path, Query, Depends, Request
 from typing import List, Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -7,6 +7,7 @@ from app.models.schemas import Agent, AgentStatus, PricingModel, AgentCreate, Ag
 from app.services.agent_service import AgentService
 from app.core.database import get_db
 from app.core.auth import get_current_user
+from app.core.permissions import check_role_and_permission
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -43,12 +44,14 @@ async def get_agent(
 
 @router.post("/", response_model=Agent, status_code=201)
 async def create_agent(
+    request: Request,
     agent: AgentCreate,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     """
     Create a new agent.
+    Requires admin role and org:all_content:manage permission.
     
     - **name**: Unique name for the agent
     - **title**: Display title for the agent
@@ -66,6 +69,10 @@ async def create_agent(
     - **demo_url**: Optional URL to demo environment
     - **prod_url**: Optional URL to production environment
     """
+
+    await check_role_and_permission(request, current_user, "admin", "org:all_content:manage")
+
+    
     agent_service = AgentService(db)
     if agent_service.get_agent_by_name(agent.name):
         raise HTTPException(status_code=400, detail="An agent with this name already exists")
