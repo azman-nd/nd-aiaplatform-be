@@ -250,39 +250,33 @@ alembic history
 
 ### Running Tests
 
-1. Run all tests:
+1. **Run all tests**:
 ```bash
 pytest
 ```
 
-2. Run tests with verbose output:
-```bash
-pytest -v
-```
-
-3. Run tests with coverage report:
-```bash
-pytest --cov=app tests/
-```
-
-4. Run specific test file:
+2. **Run specific test file**:
 ```bash
 pytest tests/api/v1/endpoints/test_agents.py
 ```
 
-### Test Structure
-- `tests/`: Root test directory
-  - `conftest.py`: Contains shared pytest fixtures
-  - `api/`: API tests
-    - `v1/`: Version 1 API tests
-      - `endpoints/`: Tests for specific endpoints
+3. **Run tests with coverage report**:
+```bash
+# Run tests with coverage for the app package and show missing lines
+pytest tests/api/v1/endpoints/test_agents.py -v --cov=app --cov-report=term-missing
 
-### Writing Tests
-1. Test files should be named `test_*.py`
-2. Test functions should be named `test_*`
-3. Use fixtures from `conftest.py` for common setup
-4. Follow the Arrange-Act-Assert pattern
-5. Test both success and error cases
+# Generate HTML coverage report
+pytest tests/api/v1/endpoints/test_agents.py -v --cov=app --cov-report=html
+
+# Generate both terminal and HTML reports
+pytest tests/api/v1/endpoints/test_agents.py -v --cov=app --cov-report=term-missing --cov-report=html
+```
+
+The coverage report will show:
+- Overall code coverage percentage
+- Coverage for each module
+- Lines that are not covered by tests
+- Missing lines in each file
 
 ## API Documentation
 

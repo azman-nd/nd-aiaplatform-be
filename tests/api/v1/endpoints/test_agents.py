@@ -49,7 +49,7 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
             "sub": "1234567890",
             "name": "Test User",
             "iat": 1516239022,
-            "fea": "all_content",
+            "fea": "o:all_content",
             "o": {
                 "rol": "admin",
                 "per": "manage"
@@ -227,7 +227,7 @@ def test_delete_agent(client, db_session, sample_agent_data):
     - Verifies successful agent deletion
     - Ensures agent is actually removed from database
     - Validates can't retrieve deleted agent
-    - Checks correct status codes (200 OK, 404 Not Found)
+    - Checks correct status codes (204 No Content, 404 Not Found)
     """
     # Create agent
     create_response = client.post("/api/v1/agents/", json=sample_agent_data)
@@ -235,8 +235,7 @@ def test_delete_agent(client, db_session, sample_agent_data):
 
     # Delete agent
     response = client.delete(f"/api/v1/agents/{agent_id}")
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["message"] == "Agent deleted successfully"
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
     # Verify agent is deleted
     get_response = client.get(f"/api/v1/agents/{agent_id}")
@@ -648,7 +647,7 @@ def test_create_agent_with_insufficient_permissions(client, db_session, sample_a
             "sub": "1234567890",
             "name": "Test User",
             "iat": 1516239022,
-            "fea": "all_content",
+            "fea": "o:all_content",
             "o": {
                 "rol": "user",  # Incorrect role
                 "per": "manage"
@@ -666,7 +665,7 @@ def test_create_agent_with_insufficient_permissions(client, db_session, sample_a
             "sub": "1234567890",
             "name": "Test User",
             "iat": 1516239022,
-            "fea": "all_content",
+            "fea": "o:all_content",
             "o": {
                 "rol": "admin",
                 "per": "view"  # Incorrect permission
@@ -737,7 +736,7 @@ def test_create_agent_with_missing_org_data(client, db_session, sample_agent_dat
             "sub": "1234567890",
             "name": "Test User",
             "iat": 1516239022,
-            "fea": "all_content"
+            "fea": "o:all_content"
             # Missing 'o' field
         }
 
@@ -806,7 +805,7 @@ def test_create_agent_with_empty_permissions(client, db_session, sample_agent_da
             "sub": "1234567890",
             "name": "Test User",
             "iat": 1516239022,
-            "fea": "all_content",
+            "fea": "o:all_content",
             "o": {
                 "rol": "admin",
                 "per": ""  # Empty permissions

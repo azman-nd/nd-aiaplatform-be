@@ -22,8 +22,9 @@ app_db.SessionLocal = TestingSessionLocal
 Base = app_db.Base
 
 # Patch AgentDB table schema for SQLite (no schema support)
-from app.models.database import AgentDB
+from app.models.database import AgentDB, UserAgentPurchaseDB
 AgentDB.__table__.schema = None
+UserAgentPurchaseDB.__table__.schema = None
 
 def override_get_db():
     db = TestingSessionLocal()

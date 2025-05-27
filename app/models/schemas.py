@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field, HttpUrl, ConfigDict
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Union
 from datetime import datetime
 from uuid import UUID, uuid4
 
 # Define valid values as type aliases
-AgentStatus = Literal["active", "inactive", "maintenance", "deprecated"]
+AgentStatus = Literal["active", "inactive", "maintenance", "deprecated", "pending"]
 PricingModel = Literal["free", "paid", "subscription"]
 
 class AgentBase(BaseModel):
@@ -13,6 +13,7 @@ class AgentBase(BaseModel):
     description: str = Field(..., min_length=10)
     version: str = Field(..., pattern="^\\d+\\.\\d+\\.\\d+$")  # Semantic versioning
     image_url: Optional[HttpUrl] = None
+    image_data: Optional[bytes] = None
     features: str  # Newline-separated string of features
     status: AgentStatus = "active"
     pricing_model: PricingModel
@@ -55,6 +56,7 @@ class AgentUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=10)
     version: Optional[str] = Field(None, pattern="^\\d+\\.\\d+\\.\\d+$")
     image_url: Optional[HttpUrl] = None
+    image_data: Optional[bytes] = None
     features: Optional[str] = None
     status: Optional[AgentStatus] = None
     pricing_model: Optional[PricingModel] = None
@@ -97,4 +99,43 @@ class Agent(AgentBase):
                 "prod_url": "https://prod.example.com"
             }
         }
-    ) 
+    )
+
+class AgentSubscriptionBase(BaseModel):
+    user_id: Optional[str] = None
+    agent_id: UUID
+    purchase_modality: Optional[str] = None
+    purchase_date: Optional[datetime] = None
+    expiry_date: Optional[datetime] = None
+    ownership_status: Optional[str] = "active"
+
+class AgentSubscriptionCreate(AgentSubscriptionBase):
+    pass
+
+class AgentSubscriptionUpdate(BaseModel):
+    ownership_status: str
+    expiry_date: Optional[datetime] = None
+
+class AgentSubscriptionInDB(AgentSubscriptionBase):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserSubscriptionResponse(BaseModel):
+    """Schema for user's subscription response"""
+    id: UUID
+    agent_id: UUID
+    agent_name: str
+    agent_title: str
+    agent_description: str
+    agent_image_url: Optional[str]
+    purchase_modality: str
+    purchase_date: datetime
+    expiry_date: Optional[datetime]
+    ownership_status: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True) 

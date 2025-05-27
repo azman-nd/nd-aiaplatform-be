@@ -63,7 +63,7 @@ async def check_role_and_permission(request: Request, current_user: dict, requir
             )
 
         # Get features and permissions as sets for O(1) lookups
-        features = {f.strip() for f in payload.get('fea', '').split(',') if f.strip()}
+        features = {f.strip().split(':')[1] for f in payload.get('fea', '').split(',') if f.strip()}
         permissions = {p.strip() for p in org_data.get('per', '').split(',') if p.strip()}
 
         if not features:

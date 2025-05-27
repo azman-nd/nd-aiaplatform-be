@@ -1,13 +1,20 @@
-from fastapi import APIRouter, HTTPException, Path, Query, Depends, Request
+from fastapi import APIRouter, HTTPException, Path, Query, Depends, Request, File, UploadFile, Body
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from typing import List, Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
+import base64
+import json
 
 from app.models.schemas import Agent, AgentStatus, PricingModel, AgentCreate, AgentUpdate
 from app.services.agent_service import AgentService
 from app.core.database import get_db
 from app.core.auth import get_current_user
 from app.core.permissions import check_role_and_permission
+
+# Constants
+MAX_IMAGE_SIZE = 50 * 1024  # 50KB in bytes
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -29,79 +36,96 @@ async def get_agents(
 
 @router.get("/{agent_id}", response_model=Agent)
 async def get_agent(
-    agent_id: UUID = Path(..., title="The ID of the agent to retrieve"),
+    agent_id: UUID = Path(..., title="The ID of the agent to get"),
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     """
-    Retrieve a specific agent by ID.
+    Get a specific agent by ID.
     """
     agent_service = AgentService(db)
     agent = agent_service.get_agent_by_id(agent_id)
-    if agent is None:
+    if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     return agent
 
 @router.post("/", response_model=Agent, status_code=201)
 async def create_agent(
     request: Request,
-    agent: AgentCreate,
+    agent_data: AgentCreate,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     """
     Create a new agent.
     Requires admin role and org:all_content:manage permission.
-    
-    - **name**: Unique name for the agent
-    - **title**: Display title for the agent
-    - **description**: Detailed description of the agent
-    - **version**: Semantic version (e.g., "1.0.0")
-    - **image_url**: Optional URL to agent's image
-    - **features**: Newline-separated list of features
-    - **status**: Agent status (active/inactive/maintenance/deprecated)
-    - **pricing_model**: Pricing model (free/paid/subscription)
-    - **price**: Price for paid agents
-    - **display_order**: Order in which to display the agent
-    - **provider**: Name of the agent provider
-    - **language_support**: List of supported languages
-    - **tags**: List of tags for the agent
-    - **demo_url**: Optional URL to demo environment
-    - **prod_url**: Optional URL to production environment
     """
+    await check_role_and_permission(request, current_user, "admin", "o:all_content:manage")
 
-    await check_role_and_permission(request, current_user, "admin", "org:all_content:manage")
-
-    
     agent_service = AgentService(db)
-    if agent_service.get_agent_by_name(agent.name):
+    if agent_service.get_agent_by_name(agent_data.name):
         raise HTTPException(status_code=400, detail="An agent with this name already exists")
-    return agent_service.create_agent(agent)
+
+    if agent_data.image_data:
+        try:
+            raw_bytes = base64.b64decode(agent_data.image_data)
+            if len(raw_bytes) > MAX_IMAGE_SIZE:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Image file size exceeds the maximum limit of 50KB."
+                )
+            agent_data.image_data = raw_bytes
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error decoding image: {str(e)}")
+
+    return agent_service.create_agent(agent_data)
 
 @router.put("/{agent_id}", response_model=Agent)
 async def update_agent(
+    request: Request,
     agent_id: UUID = Path(..., title="The ID of the agent to update"),
-    agent_update: AgentUpdate = None,
+    image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     """
-    Update an existing agent.
+    Update an agent.
     """
+    try:
+        body = await request.json()
+        agent_update = AgentUpdate(**body)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail="Invalid JSON in request body")
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
     agent_service = AgentService(db)
     existing_agent = agent_service.get_agent_by_id(agent_id)
+
     if not existing_agent:
         raise HTTPException(status_code=404, detail="Agent not found")
+
     # Duplicate name check
     all_agents = agent_service.get_all_agents()
-    if agent_update and any(a.name == agent_update.name and str(a.id) != str(agent_id) for a in all_agents):
+    if any(a.name == agent_update.name and str(a.id) != str(agent_id) for a in all_agents):
         raise HTTPException(status_code=400, detail="An agent with this name already exists")
+
+    # Handle image upload if provided
+    if image:
+        try:
+            image_data = await image.read()
+            agent_update.image_data = image_data
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
+
     updated_agent = agent_service.update_agent(agent_id, agent_update)
+
     if not updated_agent:
         raise HTTPException(status_code=500, detail="Failed to update agent")
+    
     return updated_agent
 
-@router.delete("/{agent_id}")
+@router.delete("/{agent_id}", status_code=204)
 async def delete_agent(
     agent_id: UUID = Path(..., title="The ID of the agent to delete"),
     db: Session = Depends(get_db),
@@ -111,10 +135,8 @@ async def delete_agent(
     Delete an agent.
     """
     agent_service = AgentService(db)
-    success = agent_service.delete_agent(agent_id)
-    if not success:
+    if not agent_service.delete_agent(agent_id):
         raise HTTPException(status_code=404, detail="Agent not found")
-    return {"message": "Agent deleted successfully"}
 
 @router.get("/search/", response_model=List[Agent])
 async def search_agents(

@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.endpoints import agents
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from app.api.v1.endpoints import agents, subscriptions
 import os
 from dotenv import load_dotenv
 from sqlalchemy import text
@@ -9,6 +11,7 @@ from app.core.auth import get_current_user
 import logging
 from contextlib import asynccontextmanager
 from app.core.config import settings
+import json
 
 load_dotenv()
 
@@ -37,6 +40,37 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    print("\n=== Validation Error ===")
+    print(f"Request URL: {request.url}")
+    print("\nRequest Headers:")
+    for header, value in request.headers.items():
+        print(f"{header}: {value}")
+    
+    try:
+        body = await request.json()
+        print("\nRequest Body")
+        # If there's image data, print first 10 chars
+        if isinstance(body, dict) and "image_data" in body and body["image_data"]:
+            image_data = body["image_data"]
+            print(f"Image data (first 10 chars): {str(image_data)[:10]}")
+            # Remove image data from body for cleaner logging
+            body_copy = body.copy()
+            body_copy["image_data"] = "...truncated..."
+            print(json.dumps(body_copy, indent=2))
+        else:
+            print(json.dumps(body, indent=2))
+    except Exception as e:
+        print(f"\nError reading request body: {str(e)}")
+    
+    print("\nValidation Errors:")
+    print(json.dumps(exc.errors(), indent=2))
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
+
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
@@ -48,6 +82,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(agents.router, prefix="/api/v1")
+app.include_router(subscriptions.router, prefix="/api/v1/subscriptions")
 
 @app.get("/")
 async def root():
